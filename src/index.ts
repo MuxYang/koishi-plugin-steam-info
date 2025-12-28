@@ -11,10 +11,7 @@ export interface Config {
   steamApiKey: string[]
   proxy?: string
   steamRequestInterval: number
-  steamBroadcastType: 'all' | 'part' | 'none'
   steamDisableBroadcastOnStartup: boolean
-  adminId?: string
-  logForwardTarget?: string
   fonts: {
     regular: string
     light: string
@@ -36,11 +33,8 @@ export const Config: Schema<Config> = Schema.object({
   steamApiKey: Schema.array(String).required().description('Steam API Key（支持多个）'),
   proxy: Schema.string().description('代理地址，例如 http://127.0.0.1:7890'),
   steamRequestInterval: Schema.number().default(300).description('轮询间隔（秒）'),
-  steamBroadcastType: Schema.union(['all', 'part', 'none']).default('part').description('播报类型：all（全部图片列表）、part（仅开始游戏时图片）、none（仅文字）'),
-  startBroadcastType: Schema.union(['list', 'text_image', 'image', 'text']).default('text_image').description('玩家开始游戏时的播报方式：list（整个列表，同 steam.check）、text_image（文字+图片）、image（仅图片）、text（仅文字）'),
+  startBroadcastType: Schema.union(['all','part','none','list','text_image','image','text']).default('text_image').description('播报方式：可选 all（全部图片列表）、part（仅开始游戏时按后续模式）、none（仅文字），或具体开始模式 list/text_image/image/text'),
   steamDisableBroadcastOnStartup: Schema.boolean().default(false).description('启动时禁用首次播报（仅预热缓存）'),
-  logForwardTarget: Schema.string().description('将所有日志转发到的目标用户 QQ（可选）'),
-  adminId: Schema.string().description('插件管理员 QQ（拥有最高权限，空表示无）'),
   fonts: Schema.object({
     regular: Schema.string().default('fonts/MiSans-Regular.ttf'),
     light: Schema.string().default('fonts/MiSans-Light.ttf'),
@@ -76,54 +70,7 @@ export function apply(ctx: Context, config: Config) {
   ctx.plugin(SteamService, config)
   ctx.plugin(DrawService, config)
 
-  // 日志转发（可选）
-  if (config.logForwardTarget) {
-    const target = config.logForwardTarget
-    const sendToTarget = async (level: string, message: any) => {
-      try {
-        const bots = Object.values(ctx.bots)
-        const bot: any = bots[0]
-        if (!bot) return
-        const text = `[${name}][${level}] ${typeof message === 'string' ? message : JSON.stringify(message)}`
-        await bot.sendMessage(target, text)
-      } catch {
-        // 忽略转发失败，避免影响主流程
-      }
-    }
-
-    const ld: any = logger as any
-    const wrap = (orig: Function, level: string) => (...args: any[]) => {
-      try { orig(...args) } catch {}
-      try { sendToTarget(level, args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')) } catch {}
-    }
-
-    ld.debug = wrap(ld.debug?.bind(ld) || (() => {}), 'DEBUG')
-    ld.info = wrap(ld.info?.bind(ld) || (() => {}), 'INFO')
-    ld.warn = wrap(ld.warn?.bind(ld) || (() => {}), 'WARN')
-    ld.error = wrap(ld.error?.bind(ld) || (() => {}), 'ERROR')
-    ;(ld as any).fatal = wrap((ld as any).fatal?.bind(ld) || (() => {}), 'FATAL')
-  }
-
-  // 管理员权限豁免（可选）：在所有会话中提升该 QQ 的权限为最高
-  if (config.adminId) {
-    ctx.middleware(async (session, next) => {
-      try {
-        if (session && session.userId) {
-          const uid = String(session.userId)
-          const admin = String(config.adminId)
-          const uidDigits = uid.replace(/\D/g, '')
-          const adminDigits = admin.replace(/\D/g, '')
-          const matched = uid === admin || uid.endsWith(':' + admin) || uid.endsWith('@qq:' + admin) || uidDigits === adminDigits
-          if (matched) {
-            ;(session as any).authority = Number.MAX_SAFE_INTEGER
-          }
-        }
-      } catch {
-        // ignore
-      }
-      return next()
-    })
-  }
+  // 日志转发与管理员配置已移除：不再在运行时注入相关逻辑。
 
   // Database
   ctx.model.extend('steam_bind', {
@@ -331,18 +278,7 @@ export function apply(ctx: Context, config: Config) {
         return session.text('.nickname_set', [nickname])
       })
 
-      // 调试命令：查看当前会话 userId 与权限（便于确认 adminId 是否生效）
-      ctx.command('steam.whoami', '调试：查看当前用户 id 与权限')
-        .action(async ({ session }) => {
-          if (!session) return
-          try {
-            const uid = session.userId
-            const auth = (session as any).authority ?? 'unknown'
-            return session.text?.('.whoami', [String(uid), String(auth)]) || `userId=${uid}, authority=${auth}`
-          } catch (e) {
-            return `error: ${String(e)}`
-          }
-        })
+      // (已移除) 调试命令 steam.whoami 已删除以避免缺失的 i18n 警告
 
     // Scheduler
     let skipFirstBroadcast = config.steamDisableBroadcastOnStartup
@@ -517,9 +453,17 @@ async function broadcast(ctx: Context, config: Config) {
       const bot = botKey ? ctx.bots[botKey] : Object.values(ctx.bots)[0]
       if (!bot) continue
 
-      // 简化逻辑：steamBroadcastType 控制是否展示图片（all/part/none）
-      const broadcastType = config.steamBroadcastType || 'part'
-      const startMode = (config as any).startBroadcastType || 'text_image'
+      // 统一使用 startBroadcastType：支持 all/part/none 或具体开始模式（list/text_image/image/text）
+      const configured = (config as any).startBroadcastType || 'text_image'
+      let broadcastType: string
+      let startMode: string
+      if (['all', 'part', 'none'].includes(configured)) {
+        broadcastType = configured
+        startMode = 'text_image'
+      } else {
+        broadcastType = 'part'
+        startMode = configured
+      }
 
       // 如果为 none，始终仅文字
       if (broadcastType === 'none') {

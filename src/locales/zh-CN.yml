@@ -22,7 +22,7 @@ fonts:
 
 steamDisableBroadcastOnStartup: "启动时禁用首次播报（仅预热缓存）"
 steamRequestInterval: "轮询间隔（秒）"
-steamBroadcastType: "播报类型（all/part/none）"
+# steamBroadcastType 已合并到 startBroadcastType
 
 commandAuthority:
   bind: "绑定命令权限"
@@ -33,6 +33,4 @@ commandAuthority:
   disable: "禁用播报命令权限"
   update: "更新群信息命令权限"
   nickname: "设置昵称命令权限"
-logForwardTarget: "日志转发目标 QQ（填写 QQ 号）"
-adminId: "插件管理员 QQ（拥有最高权限）"
-startBroadcastType: "玩家开始游戏时的播报方式（list/text_image/image/text）"
+# logForwardTarget 与 adminId 已移除

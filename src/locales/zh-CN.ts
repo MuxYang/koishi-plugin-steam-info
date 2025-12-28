@@ -4,9 +4,7 @@ export default {
       steamApiKey: 'Steam API Key（支持多个）',
       proxy: '代理地址，例如 http://127.0.0.1:7890',
       steamRequestInterval: '轮询间隔（秒）',
-      steamBroadcastType: '播报类型：all（全部图片列表）、part（仅开始游戏时图片）、none（仅文字）',
       steamDisableBroadcastOnStartup: '启动时禁用首次播报（仅预热缓存）',
-      logForwardTarget: '日志转发目标 QQ（填写 QQ 号）',
       fonts: {
         regular: '常规字体路径',
         light: '细体字体路径',
@@ -24,10 +22,8 @@ export default {
       },
     },
   startBroadcast: {
+      // logForwardTarget 和 adminId 已移除
     startBroadcastType: '玩家开始游戏时的播报方式（list/text_image/image/text）',
-  },
-  admin: {
-    adminId: '插件管理员 QQ（拥有最高权限）'
   },
   },
   commands: {
