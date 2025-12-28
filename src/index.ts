@@ -45,17 +45,17 @@ export const Config: Schema<Config> = Schema.object({
     regular: Schema.string().default('fonts/MiSans-Regular.ttf'),
     light: Schema.string().default('fonts/MiSans-Light.ttf'),
     bold: Schema.string().default('fonts/MiSans-Bold.ttf'),
-  }).description('Font paths relative to the plugin resource directory or absolute paths'),
+  }).description('字体文件路径，相对于插件资源目录或绝对路径'),
   commandAuthority: Schema.object({
-    bind: Schema.number().default(1).description('Authority for bind command'),
-    unbind: Schema.number().default(1).description('Authority for unbind command'),
-    info: Schema.number().default(1).description('Authority for info command'),
-    check: Schema.number().default(1).description('Authority for check command'),
-    enable: Schema.number().default(2).description('Authority for enable broadcast'),
-    disable: Schema.number().default(2).description('Authority for disable broadcast'),
-    update: Schema.number().default(2).description('Authority for update group info'),
-    nickname: Schema.number().default(1).description('Authority for nickname command'),
-  }).description('Command Authorities'),
+    bind: Schema.number().default(1).description('绑定命令所需权限'),
+    unbind: Schema.number().default(1).description('解绑命令所需权限'),
+    info: Schema.number().default(1).description('查看资料命令所需权限'),
+    check: Schema.number().default(1).description('查看状态命令所需权限'),
+    enable: Schema.number().default(2).description('启用播报命令所需权限'),
+    disable: Schema.number().default(2).description('禁用播报命令所需权限'),
+    update: Schema.number().default(2).description('更新群信息命令所需权限'),
+    nickname: Schema.number().default(1).description('设置昵称命令所需权限'),
+  }).description('命令权限配置'),
 })
 
 export const logger = new Logger('steam-info')
