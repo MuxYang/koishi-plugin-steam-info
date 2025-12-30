@@ -17,16 +17,7 @@ export class DrawService extends Service {
   }
 
   private getFontCss(): string {
-    // We can try to load fonts as base64 or just reference them if we assume the browser environment can see them.
-    // For simplicity and robustness, passing them as base64 in CSS @font-face is good but heavy.
-    // If we assume standard fonts or just let the browser handle it, it's easier.
-    // However, the original plugin used MiSans.
-    // Let's try to load them if possible, or fallback to sans-serif.
-    // Since we are in Node, we can read the files.
-    
-    // Note: Puppeteer page.setContent usually runs in a context where local file access might be restricted 
-    // unless we use `file://` protocol or base64. Base64 is safest.
-    
+
     let css = `
       body { font-family: 'MiSans', sans-serif; margin: 0; padding: 0; background-color: #1e2024; color: #fff; }
     `
@@ -457,7 +448,7 @@ export class DrawService extends Service {
     if (images.length === 0) return null
     if (images.length === 1) return images[0]
     
-    // We can use a simple HTML page to stack images vertically
+    //stack images
     let imgsHtml = ''
     for (const img of images) {
         const src = this.imageToBase64(img)

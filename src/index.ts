@@ -104,17 +104,8 @@ export function apply(ctx: Context, config: Config) {
       .action(async ({ session }, steamId) => {
         if (!session) return
 
-        // 如果未提供参数，返回当前已绑定的 Steam ID（若有）
-        if (!steamId) {
-          try {
-            const bind = await ctx.database.get('steam_bind', { userId: session.userId, channelId: session.channelId })
-            if (bind.length) return session.text('.current_bound', [bind[0].steamId])
-            return session.text('.not_bound')
-          } catch (e) {
-            logger.error('查询当前绑定失败：' + String(e) + ' EEE')
-            return session.text('.error')
-          }
-        }
+        // 如果未提供参数，返回该子命令的用法提示
+        if (!steamId) return session.text('.usage')
 
         if (!/^[0-9]+$/.test(steamId)) return session.text('.invalid_id')
 
@@ -257,7 +248,7 @@ export function apply(ctx: Context, config: Config) {
               avatarBase64 = Buffer.from(buffer).toString('base64')
           }
 
-          if (!name && !avatarBase64) return session.text('.args_missing')
+          if (!name && !avatarBase64) return session.text('.usage')
 
           const update: any = { id: session.channelId, platform: session.platform, assignee: session.selfId }
           if (name) update.name = name
@@ -271,6 +262,7 @@ export function apply(ctx: Context, config: Config) {
       .alias('steamnickname', 'steam昵称')
       .action(async ({ session }, nickname) => {
         if (!session) return
+        if (!nickname) return session.text('.usage')
         const bind = await ctx.database.get('steam_bind', { userId: session.userId, channelId: session.channelId })
         if (!bind.length) return session.text('.not_bound')
         

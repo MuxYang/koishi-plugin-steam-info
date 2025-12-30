@@ -29,6 +29,7 @@ export default {
   commands: {
     steam: {
       bind: {
+        usage: '用法：steam bind <steamId>',
         bind_success: '绑定成功！Steam ID: {0}',
         already_bound: '您已经绑定过帐号了！',
         current_bound: '您当前绑定的 Steam ID 为 {0}。',
@@ -45,6 +46,7 @@ export default {
         },
       },
       unbind: {
+        usage: '用法：steam unbind',
         unbind_success: '解绑成功。',
         not_bound: '你还没有绑定 Steam ID。',
         error: '发生错误。',
@@ -55,6 +57,7 @@ export default {
         },
       },
       info: {
+        usage: '用法：steam info [@user|steamId]',
         user_not_found: '未找到用户信息。',
         error: '发生错误。',
         messages: {
@@ -63,6 +66,7 @@ export default {
         },
       },
       check: {
+        usage: '用法：steam check',
         no_binds: '本群尚无绑定用户。',
         api_error: '连接 Steam API 失败。',
         error: '发生错误。',
@@ -73,6 +77,7 @@ export default {
         },
       },
       enable: {
+        usage: '用法：steam enable',
         enable_success: '已开启本群播报。',
         error: '发生错误。',
         messages: {
@@ -81,6 +86,7 @@ export default {
         },
       },
       disable: {
+        usage: '用法：steam disable',
         disable_success: '已关闭本群播报。',
         error: '发生错误。',
         messages: {
@@ -89,16 +95,18 @@ export default {
         },
       },
       update: {
+        usage: '用法：steam update <name> [@image]',
         args_missing: '参数缺失。',
         update_success: '更新群信息成功。',
         error: '发生错误。',
         messages: {
-          args_missing: '参数缺失。',
+          usage: '用法：steam update <name> [@image]',
           update_success: '更新群信息成功。',
           error: '发生错误。',
         },
       },
       nickname: {
+        usage: '用法：steam nickname <nickname>',
         not_bound: '你还没有绑定 Steam ID。',
         nickname_set: '昵称已设置为 {0}。',
         error: '发生错误。',
