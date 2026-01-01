@@ -53,6 +53,8 @@ export const Config: Schema<Config> = Schema.object({
 })
 
 export const logger = new Logger('steam-info')
+// 将 INFO 级别完全静默（no-op），只保留 WARN 及以上输出。
+(logger as any).info = () => {}
 
 declare module 'koishi' {
   interface Context {
